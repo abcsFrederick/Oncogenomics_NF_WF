@@ -6,6 +6,7 @@ include {FormatInput} from '../modules/annotation/annot'
 include {Annotation} from '../subworkflows/Annotation'
 include {AddAnnotation} from '../modules/annotation/annot'
 include {CNVkitPooled} from '../modules/cnvkit/CNVkitPooled'
+include {RECONCNV} from '../modules/cnvkit/reconcnv/main'
 include {CNVkit_png} from '../modules/cnvkit/CNVkitPooled'
 include {DBinput_multiple_new} from '../modules/misc/DBinput'
 include {Genotyping_Sample
@@ -40,6 +41,9 @@ workflow Tumor_multiple_libs {
 
     genome_version_tcellextrect         = Channel.of(params.genome_version_tcellextrect)
     Pipeline_version = Channel.from(params.Pipeline_version)
+    recon_config_ch = Channel.fromPath(params.reconcnv_config_file)
+    recon_data_ch   = Channel.fromPath(params.reconcnv_data_dir)
+
 
 take:
     multiple_tumor_samplesheet
@@ -148,6 +152,15 @@ cnvkit_input_bam|CNVkitPooled
 CNVkitPooled.out.cnvkit_pdf|CNVkit_png
 ch_allcomplete = ch_allcomplete.mix(
     CNVkit_png.out.map { meta, file -> file }.ifEmpty([]) )
+cnvkit_recon_input = CNVkitPooled.out.cnvkit_cnr
+    .join(CNVkitPooled.out.cnvkit_cns, by:[0])
+    .map { meta, cnr, cns -> [meta, cnr, cns] }
+
+RECONCNV(
+    cnvkit_recon_input,
+    recon_config_ch,
+    recon_data_ch
+)
 
 
 TcellExtrect(

@@ -27,6 +27,7 @@ include {DBinput_multiples } from '../modules/misc/DBinput'
 include {QC_summary_Patientlevel} from '../modules/qc/qc'
 include {CNVkitPaired} from '../modules/cnvkit/CNVkitPaired'
 include {CNVkitAnnotation} from '../modules/cnvkit/cnvkit_annotation'
+include {RECONCNV} from '../modules/cnvkit/reconcnv/main'
 include {CNVkit_png} from '../modules/cnvkit/CNVkitPooled'
 include {TcellExtrect_TN} from '../modules/misc/TcellExtrect'
 include {Split_vcf} from '../modules/neoantigens/Pvacseq.nf'
@@ -78,6 +79,8 @@ workflow Tumor_Normal_WF {
     conpair_marker          = Channel.of(file(params.conpair_marker, checkIfExists:true))
     genome_version_tcellextrect         = Channel.of(params.genome_version_tcellextrect)
     Pipeline_version = Channel.from(params.Pipeline_version)
+    recon_config_ch = Channel.fromPath(params.reconcnv_config_file)
+    recon_data_ch   = Channel.fromPath(params.reconcnv_data_dir)
 
 take:
     TN_samplesheet
@@ -192,6 +195,16 @@ CNVkitPaired(
 
 
 ch_versions = ch_versions.mix(CNVkitPaired.out.versions)
+
+cnvkit_recon_input = CNVkitPaired.out.cnvkit_cnr
+    .join(CNVkitPaired.out.cnvkit_cns, by:[0])
+    .map { meta, cnr, cns -> [meta, cnr, cns] }
+
+RECONCNV(
+    cnvkit_recon_input,
+    recon_config_ch,
+    recon_data_ch
+)
 
 CNVkitAnnotation(tumor_target_capture
     .join(CNVkitPaired.out.cnvkit_call_cns,by:[0]),
