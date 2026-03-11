@@ -7,6 +7,7 @@ include {Annotation} from '../subworkflows/Annotation'
 include {AddAnnotation} from '../modules/annotation/annot'
 include {CNVkitPooled
         CNVkit_png} from '../modules/cnvkit/CNVkitPooled'
+include {RECONCNV} from '../modules/cnvkit/reconcnv/main'
 include {CircosPlot
         Genotyping_Sample
         Multiqc
@@ -21,6 +22,8 @@ include {Allstepscomplete} from '../modules/misc/Allstepscomplete'
    combined_gene_list = Channel.of(file(params.combined_gene_list, checkIfExists:true))
    genome_version_tcellextrect         = Channel.of(params.genome_version_tcellextrect)
    Pipeline_version = Channel.from(params.Pipeline_version)
+   recon_config_ch = Channel.fromPath(params.reconcnv_config_file)
+   recon_data_ch   = Channel.fromPath(params.reconcnv_data_dir)
 
 
 workflow Exome_only_WF {
@@ -124,6 +127,16 @@ cnvkit_input_bam = Exome_common_WF.out.exome_final_bam.branch{
 
 //cnvkit_input_bam.view()
 cnvkit_input_bam|CNVkitPooled
+
+cnvkit_recon_input = CNVkitPooled.out.cnvkit_cnr
+    .join(CNVkitPooled.out.cnvkit_cns, by:[0])
+    .map { meta, cnr, cns -> [meta, cnr, cns] }
+
+RECONCNV(
+    cnvkit_recon_input,
+    recon_config_ch,
+    recon_data_ch
+)
 
 CNVkitPooled.out.cnvkit_pdf|CNVkit_png
 

@@ -1,0 +1,39 @@
+name: "reconcnv"
+description: Run reconCNV on CNVkit CNR/CNS files and generate whole-genome and per-chromosome HTML reports.
+keywords:
+  - cnv
+  - cnvkit
+  - reconcnv
+  - visualization
+tools:
+  - "reconCNV":
+      description: "Interactive CNV visualization from CNV input profiles."
+      homepage: "https://github.com/rghu/reconCNV"
+      licence: ["MIT"]
+input:
+  - - meta:
+        type: map
+        description: Sample metadata map containing id, casename, and lib.
+    - cnr:
+        type: file
+        description: CNVkit .cnr input file.
+    - cns:
+        type: file
+        description: CNVkit .cns input file.
+    - dn:
+        type: string
+        description: reconCNV output data directory label passed via -d.
+output:
+  - html:
+      - - meta:
+            type: map
+            description: Sample metadata map.
+        - "${meta.lib}*.html":
+            type: file
+            description: reconCNV HTML reports (whole genome and chromosome-level).
+  - versions:
+      - versions.yml:
+          type: file
+          description: File containing software versions.
+authors:
+  - "vinegang"

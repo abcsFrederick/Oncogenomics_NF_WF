@@ -12,6 +12,7 @@ include {Annotation} from '../subworkflows/Annotation'
 include {DBinput_exome_rnaseq} from '../modules/misc/DBinput'
 include {CNVkitPooled
         CNVkit_png} from '../modules/cnvkit/CNVkitPooled'
+include {RECONCNV} from '../modules/cnvkit/reconcnv/main'
 include {QC_summary_Patientlevel} from '../modules/qc/qc'
 include {Genotyping_Sample
         Multiqc
@@ -79,6 +80,9 @@ def metadatareducer(inputData) {
     genome_version_fusion_annotation =  Channel.from(params.genome_version_fusion_annotation)
     genome_version = Channel.from(params.genome_version)
     Pipeline_version = Channel.from(params.Pipeline_version)
+    recon_config_ch = Channel.fromPath(params.reconcnv_config_file)
+    recon_data_ch   = Channel.fromPath(params.reconcnv_data_dir)
+
 
 workflow Tumor_RNAseq_WF {
 
@@ -222,6 +226,16 @@ cnvkit_input_bam = Exome_common_WF.out.exome_final_bam.branch{
 }
 
 cnvkit_input_bam|CNVkitPooled
+
+cnvkit_recon_input = CNVkitPooled.out.cnvkit_cnr
+    .join(CNVkitPooled.out.cnvkit_cns, by:[0])
+    .map { meta, cnr, cns -> [meta, cnr, cns] }
+
+RECONCNV(
+    cnvkit_recon_input,
+    recon_config_ch,
+    recon_data_ch
+)
 
 CNVkitPooled.out.cnvkit_pdf|CNVkit_png
 ch_allcomplete = ch_allcomplete.mix(

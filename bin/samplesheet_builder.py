@@ -318,6 +318,12 @@ def fill_matches_for_group(rows):
         matched_rna = (r.get("Matched_RNA") or "").strip()
         matched_normal = (r.get("Matched_normal") or "").strip()
 
+        # Treat "N/A", "NA", empty strings as missing values
+        if matched_rna.upper() in {"N/A", "NA", ""}:
+            matched_rna = ""
+        if matched_normal.upper() in {"N/A", "NA", ""}:
+            matched_normal = ""
+
         if matched_rna and matched_normal:
             continue
 

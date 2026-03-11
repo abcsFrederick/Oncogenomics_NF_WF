@@ -136,7 +136,7 @@ process BAM_TO_FASTQ {
 #  module load picard
 
   # Sort the BAM by queryname (required for SamToFastq)
-  samtools sort -n -@ ${task.cpus} -o ${meta.sample}_${meta.library}.queryname.bam ${bam}
+  samtools sort -n -@ ${task.cpus} -m 16G -o ${meta.sample}_${meta.library}.queryname.bam ${bam}
 
   # Use Picard SamToFastq to split into R1/R2
   java -Xmx40g -jar \$PICARDJAR SamToFastq \
