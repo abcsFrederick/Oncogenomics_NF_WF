@@ -46,9 +46,9 @@ process GATK_RTC_IR {
         script:
         """
 
-	java -jar -Xmx40g \$GATK_JAR -T RealignerTargetCreator -nt 10 -R $genome -known $phase1_1000g -known $Mills_and_1000g -I $bam -o ${meta.lib}.realignment.intervals
+	java -jar -Xmx80g \$GATK_JAR -T RealignerTargetCreator -nt 10 -R $genome -known $phase1_1000g -known $Mills_and_1000g -I $bam -o ${meta.lib}.realignment.intervals
 
-        java -jar -Xmx40g \$GATK_JAR -T IndelRealigner -R $genome -known $phase1_1000g -known $Mills_and_1000g -I $bam --targetIntervals ${meta.lib}.realignment.intervals -o ${meta.lib}.Ir.bam --maxReadsInMemory 1500000
+        java -jar -Xmx80g \$GATK_JAR -T IndelRealigner -R $genome -known $phase1_1000g -known $Mills_and_1000g -I $bam --targetIntervals ${meta.lib}.realignment.intervals -o ${meta.lib}.Ir.bam --maxReadsInMemory 1500000
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
