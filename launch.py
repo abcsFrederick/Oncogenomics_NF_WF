@@ -189,10 +189,15 @@ def parse_args():
 # ----------------- main -----------------
 def main():
     args = parse_args()
+    outdir_explicit = any(
+        arg == "--outdir" or arg.startswith("--outdir=") for arg in sys.argv[1:]
+    )
+
     if args.dev:
         WF_HOME = DEV_WF_HOME
         DEFAULT_OUTDIR_DEV = "/data/khanlab/projects/Nextflow_dev/dev/vg_dev"
-        args.outdir = DEFAULT_OUTDIR_DEV
+        if not outdir_explicit:
+            args.outdir = DEFAULT_OUTDIR_DEV
         print(f"🔧 Dev mode enabled — using WF_HOME={WF_HOME} and OUTDIR={args.outdir}")
     else:
         WF_HOME = DEFAULT_WF_HOME
