@@ -15,7 +15,7 @@ include {AddAnnotation_TN
 include {UnionSomaticCalls} from '../modules/misc/UnionSomaticCalls.nf'
 include {MutationalSignature} from '../modules/misc/MutationalSignature.nf'
 include {Cosmic3Signature} from '../modules/misc/MutationalSignature.nf'
-include {MutationBurden} from '../modules/misc/MutationBurden.nf'
+include {MutationBurden; combineTMB} from '../modules/misc/MutationBurden.nf'
 include {Mantis_MSI} from '../modules/misc/Mantis.nf'
 include {Sequenza_annotation} from '../subworkflows/Sequenza_annotation'
 include {Annotation_somatic} from '../subworkflows/Actionable_somatic.nf'
@@ -382,7 +382,7 @@ highconfidence_somatic_threshold = tumor_target_capture
         def Normal = ''
         def Tumor = ''
         def VAF =  ''
-        if (meta.sc == 'clin.ex.v1' || meta.sc == 'nextera.ex.v1'|| meta.sc == 'vcrome2.1_pkv2' || meta.sc == 'seqcapez.hu.ex.v3' || meta.sc == 'seqcapez.hu.ex.utr.v1' || meta.sc == 'agilent.v7'|| meta.sc == 'panel_paed_v5_w5.1'|| meta.sc == 'idt_v2_plus') {
+        if (meta.sc == 'clin.ex.v1' || meta.sc == 'nextera.ex.v1'|| meta.sc == 'vcrome2.1_pkv2' || meta.sc == 'seqcapez.hu.ex.v3' || meta.sc == 'seqcapez.hu.ex.utr.v1' || meta.sc == 'agilent.v7'|| meta.sc == 'panel_paed_v5_w5.1'|| meta.sc == 'idt_v2_plus'|| meta.sc == 'hybrid_selection') {
             Normal = params.highconfidence_somatic_threshold['threshold_1']['Normal']
             Tumor = params.highconfidence_somatic_threshold['threshold_1']['Tumor']
             VAF = params.highconfidence_somatic_threshold['threshold_1']['VAF']
@@ -424,6 +424,8 @@ targetbp_MB_ch = tumor_target_capture
             targetbp_mb = params.seqcapez.hu.ex.utr.v1_MB
         } else if (meta.sc == 'seqcapez.rms.v1') {
             targetbp_mb = params.seqcapez.rms.v1_MB
+        } else if (meta.sc == 'hybrid_selection') {
+            targetbp_mb = params.hybrid_selection_MB
         } else if (meta.sc == 'idt_v2_plus') {
             targetbp_mb = params.idt_v2_plus_MB
         }
@@ -439,7 +441,16 @@ mutationburden_input_ch = AddAnnotationFull_somatic_variants.out
                     .combine(strelka_snvsch)
 
 MutationBurden(mutationburden_input_ch)
-ch_allcomplete = ch_allcomplete.mix( MutationBurden.out.map { all -> all[1..-1] }.flatten())
+
+ch_allcomplete = ch_allcomplete.mix( MutationBurden.out.mutect.map { all -> all[1..-1] }.flatten())
+ch_allcomplete = ch_allcomplete.mix( MutationBurden.out.strelka_indels.map { all -> all[1..-1] }.flatten())
+ch_allcomplete = ch_allcomplete.mix( MutationBurden.out.strelka_snvs.map { all -> all[1..-1] }.flatten())
+
+combineTMB_input_ch = MutationBurden.out.mutect.join(MutationBurden.out.strelka_indels,by:[0])
+
+combineTMB(combineTMB_input_ch)
+
+ch_allcomplete = ch_allcomplete.mix( combineTMB.out.map { all -> all[1..-1] }.flatten())
 
 mantis_input = bam_variant_calling_pair.map{
     tuple ->

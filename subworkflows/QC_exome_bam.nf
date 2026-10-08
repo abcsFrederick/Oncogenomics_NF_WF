@@ -59,9 +59,9 @@ workflow QC_exome_bam {
                 def depth = tuple[1]
                 def threshold = ''
 
-                if ((meta.sc == 'clin.ex.v1'|| meta.sc == 'idt_v2_plus') && (meta.type == 'tumor_DNA' )) {
+                if ((meta.sc == 'clin.ex.v1'|| meta.sc == 'idt_v2_plus'|| meta.sc == 'hybrid_selection') && (meta.type == 'tumor_DNA' )) {
                   threshold = params.failed_exon['clin_ex_v1']['Tumor']
-                } else if ((meta.sc == 'clin.ex.v1'|| meta.sc == 'idt_v2_plus') && (meta.type == 'normal_DNA' || meta.type == 'cell_line_DNA' || meta.type == 'blood_DNA')) {
+                } else if ((meta.sc == 'clin.ex.v1'|| meta.sc == 'idt_v2_plus' || meta.sc == 'hybrid_selection') && (meta.type == 'normal_DNA' || meta.type == 'cell_line_DNA' || meta.type == 'blood_DNA')) {
                   threshold = params.failed_exon['clin_ex_v1']['Normal']
                 } else if (meta.sc == 'wholegenome' && meta.type == 'tumor_DNA' ) {
                   threshold = params.failed_exon['wholegenome']['Tumor']

@@ -64,6 +64,8 @@ capture_ch = BWA_picard.out.picard_MD
             target_file = params.comp_ex_v1_target
         } else if (meta.sc == 'seqcapez.hu.ex.utr.v1') {
             target_file = params.seqcapez.hu.ex.utr.v1_target
+        } else if (meta.sc == 'hybrid_selection') {
+            target_file = params.hybrid_selection
         }
         return [meta,target_file]
     }
@@ -101,6 +103,8 @@ design_ch =  Exome_GATK.out.GATK_Exome_bam
             design_file = params.seqcapez.hu.ex.v3_design
         } else if (meta.sc == 'seqcapez.hu.ex.utr.v1') {
             design_file = params.seqcapez.hu.ex.utr.v1_design
+        } else if (meta.sc == 'hybrid_selection') {
+            design_file = params.hybrid_selection_design
         }
 
         return [meta,design_file]

@@ -128,6 +128,7 @@ def read_and_map_samplesheet(
         "xgen-hyb-panelv2",
         "comp_ex_v1",
         "seqcapez.hu.ex.utr.v1",
+        "hybrid_selection",
     }
 
     # Filter rows matching sample_id and case_name
